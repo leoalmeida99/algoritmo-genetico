@@ -1,3 +1,4 @@
+from algoritmo_genetico.PCG_piva.enum.ETipoPrato import ETipoPrato
 from classes.Prato import Prato
 from classes.Localidade import Localidade
 from classes.Pedido import Pedido
@@ -11,17 +12,16 @@ list_localidades = [
 
 
 list_itens = [
-    Prato(1, "LANCHE 1", 10),
-    Prato(2, "LANCHE 2", 9),
-    Prato(3, "LANCHE 3", 13),
-    Prato(4, "PIZZA 1", 15),
-    Prato(5, "PIZZA 2", 16),
-    Prato(6, "PIZZA 3", 14),
-    Prato(7, "PORCAO 1", 20),
-    Prato(8, "PORCAO 2", 22),
-    Prato(9, "PORCAO 3", 25)
+    Prato(1, "X-Salada", 9, ETipoPrato.LANCHE),
+    Prato(2, "X-Bacon", 10, ETipoPrato.LANCHE),
+    Prato(3, "X-Tudo", 13, ETipoPrato.LANCHE),
+    Prato(4, "Mussarela", 15, ETipoPrato.PIZZA),
+    Prato(5, "Paulista", 16, ETipoPrato.PIZZA),
+    Prato(6, "Portuguesa", 14, ETipoPrato.PIZZA),
+    Prato(7, "Frango a passarinho", 20, ETipoPrato.PORCAO),
+    Prato(8, "Fritas", 22, ETipoPrato.PORCAO),
+    Prato(9, "Fritas com bacon", 25, ETipoPrato.PORCAO)
 ]
-
 
 def exibirLocalidadesEItensDoCardapio():
     print("Localidades:")
