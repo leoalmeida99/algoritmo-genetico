@@ -27,12 +27,3 @@ list_itens = [
     Prato(8, "Fritas", 22, ETipoPrato.PORCAO),
     Prato(9, "Fritas com bacon", 25, ETipoPrato.PORCAO)
 ]
-
-if __name__ == '__main__':
-    pedidos_gerados = gera_pedidos.gerarPedidos(QUANTIDADE_DE_PEDIDOS,
-                                                QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER)
-
-    imprimir_pedidos_gerados()
-
-    for prato in list_itens:
-        print(prato)
