@@ -5,7 +5,7 @@ from typing import Final
 # import matplotlib.pyplot as plt
 
 
-FRASE: Final[str] = 'EuAmoInteligenciaArtificial'
+FRASE: Final[str] = 'Leonardo'
 TAM_CROMO: Final[int] = len(FRASE)
 TAM_POP: Final[int] = TAM_CROMO*2
 
@@ -155,7 +155,7 @@ if(__name__ == '__main__'):
     init_pop()
     imprime_pop()
 
-    for i in range(2000):
+    for i in range(1000):
         print('GERACAO: ', i)
         avalia_pop()
 
@@ -168,10 +168,10 @@ if(__name__ == '__main__'):
             break
 
         #dados para graficos
-        geracao.append(i)
-        melhor.append(nota_pop[0][1])
-        pior.append(nota_pop[TAM_POP-1][1])
-        medio.append(nota_pop[(TAM_POP-1)//2][1])
+        # geracao.append(i)
+        # melhor.append(nota_pop[0][1])
+        # pior.append(nota_pop[TAM_POP-1][1])
+        # medio.append(nota_pop[(TAM_POP-1)//2][1])
 
         #preservar n melhores
         j = 4

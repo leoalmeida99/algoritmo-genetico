@@ -11,6 +11,8 @@ class Pedido:
         self.lista_itens_pedido = lista_itens
         self.tempo_total_de_producao = sum(item.tempo_producao for item in lista_itens)
         self.tempo_producao_mais_entrega = self.tempo_total_de_producao + localidade_para_entrega.tempo_entrega
+        self.quantidade_total_de_itens = len(lista_itens)
+        self.MAIOR_TEMPO_DE_PRODUCAO = max(item.tempo_producao for item in lista_itens)
 
     def __str__(self):
         itens = ', '.join([item.nome for item in self.lista_itens_pedido])
@@ -18,7 +20,9 @@ class Pedido:
                 f"Localidade={self.localidade_para_entrega.nome}, "
                 f"Itens=[{itens}], "
                 f"Tempo Produção={self.tempo_total_de_producao}, "
-                f"Produção + entrega={self.tempo_producao_mais_entrega})")
+                f"Produção + entrega={self.tempo_producao_mais_entrega}), "
+                f"Total itens = {self.quantidade_total_de_itens}, "
+                f"MAIOR TEMPO DE PRODUÇÃO = {self.MAIOR_TEMPO_DE_PRODUCAO}")
 
     @staticmethod
     def gera_Pedidos(quantidade_pedidos: int, quantidade_maxima_de_itens_que_cada_pedido_pode_ter: int,
