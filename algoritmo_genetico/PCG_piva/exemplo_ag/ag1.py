@@ -1,11 +1,12 @@
 import sys
 import numpy as np
+from matplotlib import pyplot as plt
 from numpy import random
 from typing import Final
 # import matplotlib.pyplot as plt
 
 
-FRASE: Final[str] = 'Leonardo'
+FRASE: Final[str] = 'LeonardoEsOMelhorProgramadorJava'
 TAM_CROMO: Final[int] = len(FRASE)
 TAM_POP: Final[int] = TAM_CROMO*2
 
@@ -155,7 +156,7 @@ if(__name__ == '__main__'):
     init_pop()
     imprime_pop()
 
-    for i in range(1000):
+    for i in range(500):
         print('GERACAO: ', i)
         avalia_pop()
 
@@ -167,11 +168,11 @@ if(__name__ == '__main__'):
         if(nota_pop[0][1] < 1):
             break
 
-        #dados para graficos
-        # geracao.append(i)
-        # melhor.append(nota_pop[0][1])
-        # pior.append(nota_pop[TAM_POP-1][1])
-        # medio.append(nota_pop[(TAM_POP-1)//2][1])
+        # dados para graficos
+        geracao.append(i)
+        melhor.append(nota_pop[0][1])
+        pior.append(nota_pop[TAM_POP-1][1])
+        medio.append(nota_pop[(TAM_POP-1)//2][1])
 
         #preservar n melhores
         j = 4
@@ -190,12 +191,12 @@ if(__name__ == '__main__'):
         nova_pop = np.zeros((TAM_POP, TAM_CROMO))
 
 
-    # plt.title("CONVERGENCIA AG")
-    # plt.plot(geracao, melhor, label = "Melhor")
-    # plt.plot(geracao, pior, label = "Pior")
-    # plt.plot(geracao, medio, label = "Medio")
-    # plt.legend()
-    # plt.show()
+    plt.title("CONVERGENCIA AG")
+    plt.plot(geracao, melhor, label = "Melhor")
+    plt.plot(geracao, pior, label = "Pior")
+    plt.plot(geracao, medio, label = "Medio")
+    plt.legend()
+    plt.show()
 
     imprime_melhor()
     imprime_pior()

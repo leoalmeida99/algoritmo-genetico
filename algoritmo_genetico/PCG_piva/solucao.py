@@ -10,27 +10,32 @@
 
 # IMPORTAÇÕES NECESSÁRIAS PARA A SOLUÇÃO FUNCIONAR
 import random
+import matplotlib.pyplot as plt
+
 import gera_pedidos
 from algoritmo_genetico.PCG_piva.classes.Cromossomo import Cromossomo
 from algoritmo_genetico.PCG_piva.classes.Entrega import Entrega
-from algoritmo_genetico.PCG_piva.exemplo_ag.ag1 import nova_pop, imprime_pop, seleciona_pais
-from gera_pedidos import gerarPedidos
-from classes.Pedido import Pedido
 
 # VARIAVEIS GLOBAIS
-QUANTIDADE_DE_PEDIDOS = 10
-QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER = 4
+QUANTIDADE_DE_PEDIDOS = 15
+QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER = 3
 
 TAMANHO_CROMOSSOMO = QUANTIDADE_DE_PEDIDOS
-TAMANHO_POPULACAO = TAMANHO_CROMOSSOMO * 1
+TAMANHO_POPULACAO = TAMANHO_CROMOSSOMO * 2
 
-QUANTIDADE_MAXIMA_DE_ITENS_QUE_UM_MOTOBOY_PODE_LEVAR = QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER * 2 + 1; # 7
+QUANTIDADE_MAXIMA_DE_ITENS_QUE_UM_MOTOBOY_PODE_LEVAR = QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER * 2 + 1;
 
-# MATRIZ DE POPULAÇÃO
 list_populacao = []
 
 list_nova_populacao = []
 list_pais = []
+
+list_filhos = []
+
+melhor_cromossomo = []
+melhores_nota = []
+piores_nota = []
+medios_nota = []
 
 # PEDIDOS GERADOS ALEATORIAMENTE
 list_pedidos_gerados = gera_pedidos.gerarPedidos(QUANTIDADE_DE_PEDIDOS, QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER)
@@ -63,27 +68,15 @@ def encontrar_pedido_por_id(id_procurado):
             return pedido
     return None
 
-# if __name__ == '__main__':
-#
-#     entrega = [10]
-#     entrega.append(1)
-#
-#     print(entrega)
-#     # Agrupar os dois primeiros elementos como uma sublista
-#     entrega = [entrega]
-#     print(entrega)
-#     # # Adicionar a segunda sublista
-#     entrega2 = [5, 10, 15]
-#     entrega.append(entrega2)
-#     #
-#     print(entrega)
-#     # print(entrega[0])
-
 def organizarEntregasCromossomo(cromossomo: Cromossomo):
     # PEGA O PRIMEIRO PEDIDO DO CROMOSSOMO
     primeiro_pedido_cromossomo = encontrar_pedido_por_id(cromossomo.sequencia_de_producao[0])
 
+    cromossomo.sequencia_de_entrega.clear()
+
     entrega_atual = Entrega([primeiro_pedido_cromossomo.id], primeiro_pedido_cromossomo.quantidade_total_de_itens, primeiro_pedido_cromossomo.localidade_para_entrega, primeiro_pedido_cromossomo.MAIOR_TEMPO_DE_PRODUCAO)
+
+    indice_entrega = 1  # Índice da entrega atual, começa em 1 para a primeira entrega
 
     for id in cromossomo.sequencia_de_producao[1:]:
         pedido_do_loop = encontrar_pedido_por_id(id)
@@ -98,17 +91,28 @@ def organizarEntregasCromossomo(cromossomo: Cromossomo):
 
         else:
             # SALVAR NO CROMOSSOMO A ENTREGA ATUAL
-
-            cromossomo.nota += entrega_atual.localidade_entrega.tempo_entrega + entrega_atual.MAIOR_TEMPO_DE_PRODUCAO
+            penalidade = calcular_penalidade_localidade(entrega_atual.localidade_entrega.tempo_entrega, indice_entrega)
+            cromossomo.nota += entrega_atual.localidade_entrega.tempo_entrega + entrega_atual.MAIOR_TEMPO_DE_PRODUCAO + penalidade
             cromossomo.adicionaEntrega(entrega_atual.pedidos)
 
             # CRIAR UMA NOVA ENTREGA
             entrega_atual = Entrega([pedido_do_loop.id], pedido_do_loop.quantidade_total_de_itens, pedido_do_loop.localidade_para_entrega, pedido_do_loop.MAIOR_TEMPO_DE_PRODUCAO)
 
-    cromossomo.nota += entrega_atual.localidade_entrega.tempo_entrega + entrega_atual.MAIOR_TEMPO_DE_PRODUCAO
-    cromossomo.adicionaEntrega(entrega_atual.pedidos)
-    # SALVAR NO CROMOSSOMO A ENTREGA ATUAL
+            indice_entrega += 1  # Incrementa o índice da entrega
 
+    # Aplica penalidade para a última entrega
+    penalidade = calcular_penalidade_localidade(entrega_atual.localidade_entrega.tempo_entrega, indice_entrega)
+    cromossomo.nota += entrega_atual.localidade_entrega.tempo_entrega + entrega_atual.MAIOR_TEMPO_DE_PRODUCAO + penalidade
+    # SALVAR NO CROMOSSOMO A ENTREGA ATUAL
+    cromossomo.adicionaEntrega(entrega_atual.pedidos)
+
+
+def calcular_penalidade_localidade(tempo_entrega_localidade, indice_entrega):
+    """
+    Calcula a penalidade para uma entrega com base no tempo de entrega da localidade e no índice da entrega.
+    """
+    fator_punicao = 2  # Ajuste este valor para aumentar ou diminuir o impacto da punição
+    return fator_punicao * tempo_entrega_localidade * (1 / indice_entrega)
 
 def avaliar_populacao():
     for cromossomo in list_populacao:
@@ -118,29 +122,27 @@ def avaliar_populacao():
 
 
 def imprimir_melhor():
-    # Encontra o cromossomo com a menor nota
     melhor_cromossomo = min(list_populacao, key=lambda c: c.nota)
+    melhores_nota.append(melhor_cromossomo.nota)
 
     print(f">>> MELHOR: {melhor_cromossomo}")
 
 
 def imprimir_pior():
-    # Encontra o cromossomo com a maior nota
     pior_cromossomo = max(list_populacao, key=lambda c: c.nota)
+    piores_nota.append(pior_cromossomo.nota)
 
     print(f">>> PIOR: {pior_cromossomo}")
 
 
 def imprimir_medio():
     # Calcula a nota média da população
-    if not list_populacao:
-        print("População está vazia.")
-        return
-
     nota_media = sum(c.nota for c in list_populacao) / len(list_populacao)
 
     # Encontra o cromossomo com a nota mais próxima da média
     cromossomo_medio = min(list_populacao, key=lambda c: abs(c.nota - nota_media))
+
+    medios_nota.append(cromossomo_medio.nota)
 
     print(f">>> MÉDIO (Nota média: {nota_media:.2f}): {cromossomo_medio}")
 
@@ -150,46 +152,70 @@ def elitismo(QUANTIDADE_DE_MELHORES_POR_POPULACAO):
     for i in range(QUANTIDADE_DE_MELHORES_POR_POPULACAO):
         list_nova_populacao.append(list_populacao[i])
 
-
-import random
-
-# Função para selecionar pais utilizando roleta
+# Função para selecionar pais utilizando roleta viciada
 def seleciona_pais():
-    list_pais = []
-    r_pai1 = random.random()
-    r_pai2 = random.random()
+    # Lista de pais selecionados
+    list_pais.clear()
 
-    acum = 0
-    for i in range(TAMANHO_POPULACAO):
-        acum += list_populacao[i].nota  # Nota como aptidão (quanto menor a nota, melhor)
-        if acum >= r_pai1:
-            list_pais[0] = list_populacao[i]
-            break
+    # Calcular soma das notas (fitness inverso, pois menor é melhor)
+    soma_fitness = sum(1 / cromossomo.nota for cromossomo in list_populacao)
 
-    acum = 0
-    for i in range(TAMANHO_POPULACAO):
-        acum += list_populacao[i].nota
-        if acum >= r_pai2:
-            list_pais[1] = list_populacao[i]
-            break
+    # Criar uma roleta cumulativa baseada em fitness inverso
+    roleta = []
+    acumulador = 0
+    for cromossomo in list_populacao:
+        probabilidade = (1 / cromossomo.nota) / soma_fitness
+        acumulador += probabilidade
+        roleta.append(acumulador)
 
+    # Selecionar dois pais
+    for _ in range(2):
+        r = random.random()  # Número aleatório entre 0 e 1
+        for i, limite in enumerate(roleta):
+            if r <= limite:
+                list_pais.append(list_populacao[i])
+                break
 
-def cruzar(pai1, pai2):
-    ponto_corte = random.randint(1, TAMANHO_CROMOSSOMO - 1)  # Ponto de corte para o cruzamento
-    filho1_genes = pai1.sequencia_de_producao[:ponto_corte] + pai2.sequencia_de_producao[ponto_corte:]
-    filho2_genes = pai2.sequencia_de_producao[:ponto_corte] + pai1.sequencia_de_producao[ponto_corte:]
+def cruzar():
+    # Garantir que temos dois pais na lista
+    if len(list_pais) < 2:
+        print("Erro: não há pais suficientes para cruzar!")
+
+    pai1, pai2 = list_pais[0], list_pais[1]
+
+    # Ponto de corte para cruzamento
+    ponto_corte = random.randint(1, TAMANHO_CROMOSSOMO - 1)
+
+    # Geração inicial de filhos
+    filho1_genes = pai1.sequencia_de_producao[:ponto_corte]
+    filho2_genes = pai2.sequencia_de_producao[:ponto_corte]
+
+    # Preenchendo o restante dos genes dos pais, garantindo IDs únicos
+    filho1_genes += [gene for gene in pai2.sequencia_de_producao if gene not in filho1_genes]
+    filho2_genes += [gene for gene in pai1.sequencia_de_producao if gene not in filho2_genes]
 
     # Criar os cromossomos filhos
     filho1 = Cromossomo(filho1_genes, 0, [])
     filho2 = Cromossomo(filho2_genes, 0, [])
 
-    return filho1, filho2
+    # Adicionar filhos à nova população
+    list_nova_populacao.append(filho1)
+    list_nova_populacao.append(filho2)
 
-def mutar(cromossomo):
-    ponto_mutacao = random.randint(0, TAMANHO_CROMOSSOMO - 1)  # Posição aleatória para mutação
-    novo_valor = random.randint(1, QUANTIDADE_DE_PEDIDOS)  # Novo valor para o gene
-    cromossomo.sequencia_de_producao[ponto_mutacao] = novo_valor
+def exibir_melhor_producao_e_entrega_cromossomo(cromossomo):
+    print("\n--- Melhor Cromossomo ---")
+    print(f"Nota final: {cromossomo.nota}")
+    print(f"Quantidade de entregas: {len(cromossomo.sequencia_de_entrega)}")
+    print("Detalhes das entregas:")
 
+    for i, entrega in enumerate(cromossomo.sequencia_de_entrega, start=1):
+        quantidade_itens = sum(encontrar_pedido_por_id(pedido_id).quantidade_total_de_itens for pedido_id in entrega)
+        localidade = encontrar_pedido_por_id(entrega[0]).localidade_para_entrega
+        print(f"Entrega {i}:")
+        print(f"  Localidade de entrega: {localidade.nome}")
+        print(f"  IDs dos pedidos: {', '.join(map(str, entrega))}")
+        print(f"  Quantidade total de itens: {quantidade_itens}")
+    print("--- Fim do Cromossomo ---\n")
 
 
 if __name__ == '__main__':
@@ -199,7 +225,7 @@ if __name__ == '__main__':
     list_pedidos_gerados = gera_pedidos.gerarPedidos(QUANTIDADE_DE_PEDIDOS, QUANTIDADE_MAXIMA_DE_ITENS_QUE_CADA_PEDIDO_PODE_TER)
     imprimir_pedidos_gerados()
 
-    for i in range(10):
+    for i in range(100):
         print(f"GERAÇÃO: {i}")
         
         # AVALIAR POP
@@ -211,7 +237,7 @@ if __name__ == '__main__':
         imprimir_medio()
 
         # PRESERVAR N MELHORES
-        QUANTIDADE_DE_MELHORES_POR_POPULACAO = 5
+        QUANTIDADE_DE_MELHORES_POR_POPULACAO = 4
         elitismo(QUANTIDADE_DE_MELHORES_POR_POPULACAO)
 
         # GERAR NOVA POPULAÇÃO
@@ -219,10 +245,24 @@ if __name__ == '__main__':
             # SELECIONA PAIS
             seleciona_pais()
             # CRUZA PAIS
-
-            # MUTA FILHOS
+            cruzar()
 
             QUANTIDADE_DE_MELHORES_POR_POPULACAO += 2
 
         list_populacao = list_nova_populacao
         list_nova_populacao = []
+
+    exibir_melhor_producao_e_entrega_cromossomo(list_populacao[0])
+
+    # Plotar gráfico de convergência
+    plt.figure(figsize=(10, 6))
+    plt.plot(melhores_nota, label='Melhor')
+    plt.plot(piores_nota, label='Pior')
+    plt.plot(medios_nota, label='Média', linestyle='--')
+
+    plt.title('Gráfico de Convergência')
+    plt.xlabel('Geração')
+    plt.ylabel('Nota')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
